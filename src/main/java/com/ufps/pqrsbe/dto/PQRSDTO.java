@@ -1,7 +1,6 @@
 package com.ufps.pqrsbe.dto;
 
 import com.ufps.pqrsbe.entity.EstadosPQRS;
-import com.ufps.pqrsbe.entity.Semillero;
 import com.ufps.pqrsbe.entity.TiposPQRS;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -27,6 +26,6 @@ public class PQRSDTO {
     private String nombre;
     private String apellido;
     private String cedula;
-    private Semillero semillero;
+    private String semillero;
     private String codigoRadicado;
 }

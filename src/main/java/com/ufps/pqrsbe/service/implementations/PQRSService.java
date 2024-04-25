@@ -4,7 +4,6 @@ import com.ufps.pqrsbe.dto.PQRSDTO;
 import com.ufps.pqrsbe.entity.*;
 import com.ufps.pqrsbe.repository.EstPQRSRepo;
 import com.ufps.pqrsbe.repository.PQRSRepo;
-import com.ufps.pqrsbe.repository.SemilleroRepo;
 import com.ufps.pqrsbe.repository.TipoPQRSRepo;
 import com.ufps.pqrsbe.service.interfaces.IPQRSService;
 import org.springframework.beans.BeanUtils;
@@ -24,14 +23,17 @@ public class PQRSService implements IPQRSService {
     EstPQRSRepo estPQRSRepo;
 
     @Autowired
-    SemilleroRepo semilleroRepo;
-
-    @Autowired
     TipoPQRSRepo tipoPQRSRepo;
 
-
+    /**
+     * Método para crear los radicados PQRS, a los PQRS nuevos se les asignará el estado de PENDIENTE
+     * No es necesario asignarle rol por lo que es público en la web.
+     *
+     * @params El pqrsDTO y el ID del tipo de PQRS que se radicó
+     * @return El PQRS creado y guardado en la BD.
+     */
     @Override
-    public PQRSDTO createPQRS(PQRSDTO pqrsDTO, Integer semilleroID, Integer tipoPQRSID){
+    public PQRSDTO createPQRS(PQRSDTO pqrsDTO, Integer tipoPQRSID){
         PQRS pqrs = new PQRS();
         BeanUtils.copyProperties(pqrsDTO, pqrs);
 
@@ -39,14 +41,11 @@ public class PQRSService implements IPQRSService {
         if (tiposPQRS == null)
             throw new IllegalArgumentException("Ese tipo de PQRS no existe");
         EstadosPQRS estado = estPQRSRepo.findByEstado("PENDIENTE");
-        Semillero semillero = semilleroRepo.findById(semilleroID).orElse(null);
-        if (semillero == null)
-            throw new IllegalArgumentException("Semillero no existe");
 
         pqrs.setTipoPqrs(tiposPQRS);
         pqrs.setEstadoRadicado(estado);
         pqrs.setFechaRadicado(new Date());
-        pqrs.setSemillero(semillero);
+        pqrs.setSemillero("SIREDSE");
         pqrs.setCodigoRadicado(generateRandomCode(10));
 
         if(!pqrsDTO.getAnonimo()){
@@ -72,6 +71,13 @@ public class PQRSService implements IPQRSService {
 
     }
 
+    /**
+     * Método para crear el código alfanumérico de radicado por la cual se identifican los PQRS
+     * Método utilizado en la creación del PQRS
+     *
+     * @params Cantidad de caracteres que tendrá el código
+     * @return El código alfanumérico creado.
+     */
     private String generateRandomCode(int length) {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         Random random = new Random();
@@ -84,6 +90,13 @@ public class PQRSService implements IPQRSService {
         return codeBuilder.toString();
     }
 
+    /**
+     * Método para cambiar el estado del PQRS, ya sea de PENDIENTE a REVISION o REVISION a PENDIENTE (solo aplica en este orden).
+     * Solo utilizable por el rol de ADMINISTRADOR o DIRECTOR si lo hay
+     *
+     * @params El ID del PQRS y el ID del nuevo estado a asignarsele
+     * @return No retorna nada.
+     */
     @Override
     public void cambioEstadoPQRS(Integer pqrsID, Integer nuevoEstadoID){
 
@@ -113,9 +126,15 @@ public class PQRSService implements IPQRSService {
         pqrs.setEstadoRadicado(nuevoEstado);
         cambiosEstadoPQRS(pqrs, nuevoEstado);
         pqrsRepo.save(pqrs);
-
     }
 
+    /**
+     * Método para listar los PQRS registrados en la BD
+     * Solo utilizable por el rol de ADMINISTRADOR o DIRECTOR si lo hay
+     *
+     * @params
+     * @return Lista de los PQRS.
+     */
     @Override
     public List<PQRSDTO> listarPQRS() {
         return pqrsRepo.findAll().stream().map(pqrs -> {
@@ -138,6 +157,13 @@ public class PQRSService implements IPQRSService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * Método para listar los PQRS registrados en la BD filtrados por el tipo de PQRS suministrado
+     * Solo utilizable por el rol de ADMINISTRADOR o DIRECTOR si lo hay
+     *
+     * @params El ID del tipo de PQRS a filtrar
+     * @return Lista de los PQRS que sean del tipo de PQRS suministrado.
+     */
     @Override
     public List<PQRSDTO> listarPQRSporTipo(Integer tipoID) {
         TiposPQRS tiposPQRS = tipoPQRSRepo.findById(tipoID).orElse(null);
@@ -156,6 +182,13 @@ public class PQRSService implements IPQRSService {
         return PQRSDTOs;
     }
 
+    /**
+     * Método para listar los PQRS registrados en la BD filtrados por el estado de PQRS suministrado
+     * Solo utilizable por el rol de ADMINISTRADOR o DIRECTOR si lo hay
+     *
+     * @params El ID del estado de PQRS a filtrar
+     * @return Lista de los PQRS que sean del estado de PQRS suministrado.
+     */
     @Override
     public List<PQRSDTO> listarPQRSporEstado(Integer estadoID) {
         EstadosPQRS estadosPQRS = estPQRSRepo.findById(estadoID).orElse(null);
@@ -174,6 +207,13 @@ public class PQRSService implements IPQRSService {
         return PQRSDTOs;
     }
 
+    /**
+     * Método para eliminar un registro de PQRS de la BD, solo se puede eliminar si el estado del PQRS es RESUELTO
+     * Solo utilizable por el rol de ADMINISTRADOR o DIRECTOR si lo hay
+     *
+     * @params El ID del PQRS a eliminar
+     * @return No retorna nada.
+     */
     @Override
     public boolean eliminarPQRS (Integer pqrsID){
         PQRS pqrs = pqrsRepo.findById(pqrsID).orElseThrow(() -> new IllegalArgumentException("PQRS not found"));
@@ -190,6 +230,13 @@ public class PQRSService implements IPQRSService {
         }
     }
 
+    /**
+     * Método para guardar el cambio de estado de los PQRS cuando se llame el endpoint correspondiente.
+     * Método utilizado en la creación del PQRS y en los cambios de estado del PQRS
+     *
+     * @params El PQRS que cambió de estado y el ID del nuevo estado que se le fue asignado
+     * @return No retorna nada.
+     */
     public void cambiosEstadoPQRS(PQRS pqrs, EstadosPQRS estado){
         CambioEstRad cambioEstRad = new CambioEstRad();
         cambioEstRad.setFecha_cambio(new Date());

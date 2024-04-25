@@ -18,9 +18,9 @@ public class PQRSController {
     PQRSService pqrsService;
 
     @PostMapping("/create")
-    public ResponseEntity<PQRSDTO> createRequest(@RequestBody PQRSDTO pqrsDTO, @RequestParam Integer semilleroID, @RequestParam Integer tipoPQRSID) {
+    public ResponseEntity<PQRSDTO> createRequest(@RequestBody PQRSDTO pqrsDTO, @RequestParam Integer tipoPQRSID) {
 
-        PQRSDTO newPQRS = pqrsService.createPQRS(pqrsDTO, semilleroID, tipoPQRSID);
+        PQRSDTO newPQRS = pqrsService.createPQRS(pqrsDTO, tipoPQRSID);
 
         return ResponseEntity.ok(newPQRS);
     }

@@ -15,10 +15,10 @@ public class PQRS {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @NotNull(message = "titulo cannot be null")
+    @NotNull(message = "Titulo del PQRS no puede ser nulo")
     private String titulo;
 
-    @NotNull(message = "descripcion cannot be null")
+    @NotNull(message = "Descripcion del PQRS no puede ser nulo")
     private String descripcion;
 
     private Date fechaRadicado;
@@ -27,14 +27,14 @@ public class PQRS {
     @JoinColumn(name = "id_estados", nullable = false)
     private EstadosPQRS estadoRadicado;
 
-    @NotNull(message = "correo cannot be null")
+    @NotNull(message = "Correo del radicado no puede ser nulo")
     private String correo;
 
     @ManyToOne
     @JoinColumn(name = "id_tipos_pqrs", nullable = false)
     private TiposPQRS tipoPqrs;
 
-    @NotNull(message = "anonimo cannot be null")
+    @NotNull(message = "Anonimo no puede quedar sin eleccion")
     private Boolean anonimo;
 
     private String nombre;
@@ -43,9 +43,7 @@ public class PQRS {
 
     private String cedula;
 
-    @ManyToOne
-    @JoinColumn(name = "id_semillero", nullable = false)
-    private Semillero semillero;
+    private String semillero;
 
     private String codigoRadicado;
 

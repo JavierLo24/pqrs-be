@@ -49,7 +49,7 @@ public class PQRSService implements IPQRSService {
         pqrs.setSemillero(semillero);
         pqrs.setCodigoRadicado(generateRandomCode(10));
 
-        if(pqrsDTO.getAnonimo()){
+        if(!pqrsDTO.getAnonimo()){
             if (pqrs.getNombre() == null || pqrs.getNombre() == "") {
                 throw new IllegalArgumentException("El nombre de la persona no puede estar vacío.");
             }
